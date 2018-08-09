@@ -1,0 +1,23 @@
+{
+  "name": "workshop3",
+  "version": "0.0.1",
+  "description": "Generic EOSIC project",
+  "tests": "./test",
+  "migrations": "./migrate",
+  "contracts": {
+    "masteroracle": {
+      "name": "masteroracle",
+      "version": "0.0.1.1",
+      "description": "Master Oracle Contract",
+      "entry": "masteroracle.cpp",
+      "checksum": "4836dfd4ff7be12f3461b8a397d53785"
+    },
+    "betoraclize": {
+      "name": "betoraclize",
+      "version": "0.0.1.1",
+      "description": "Generic EOS contract",
+      "entry": "betoraclize.cpp",
+      "checksum": "bb8ae8bff223f02c488ae9a1074af000"
+    }
+  }
+}
