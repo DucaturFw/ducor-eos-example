@@ -1,0 +1,29 @@
+{
+  "editor.formatOnSave": false,
+  "files.associations": {
+    "array": "cpp",
+    "iterator": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "vector": "cpp",
+    "locale": "cpp",
+    "__bit_reference": "cpp",
+    "__functional_base": "cpp",
+    "atomic": "cpp",
+    "bitset": "cpp",
+    "chrono": "cpp",
+    "deque": "cpp",
+    "optional": "cpp",
+    "functional": "cpp",
+    "limits": "cpp",
+    "memory": "cpp",
+    "ratio": "cpp",
+    "regex": "cpp",
+    "scoped_allocator": "cpp",
+    "system_error": "cpp",
+    "tuple": "cpp",
+    "type_traits": "cpp",
+    "typeindex": "cpp",
+    "typeinfo": "cpp"
+  }
+}
