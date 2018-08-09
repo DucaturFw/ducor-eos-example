@@ -5,3 +5,6 @@ bashrc
 
 node_modules
 Dockerfile
+
+migrate/**/*
+test/**/*
