@@ -10,14 +10,20 @@
       "version": "0.0.1.1",
       "description": "Master Oracle Contract",
       "entry": "masteroracle.cpp",
-      "checksum": "4836dfd4ff7be12f3461b8a397d53785"
+      "checksum": "a9b393045a16eeb33b094c8721e4a39a"
     },
     "betoraclize": {
       "name": "betoraclize",
       "version": "0.0.1.1",
       "description": "Generic EOS contract",
       "entry": "betoraclize.cpp",
-      "checksum": "bb8ae8bff223f02c488ae9a1074af000"
+      "checksum": "22c545797d01512137795d8f7ffc1d17"
+    },
+    "carboncopy": {
+      "name": "carboncopy",
+      "version": "0.0.1.1",
+      "description": "Generic EOS contract",
+      "entry": "carboncopy.cpp"
     }
   }
 }

@@ -8,3 +8,7 @@ Dockerfile
 
 migrate/**/*
 test/**/*
+
+*.abi
+*.wast
+*.wasm
