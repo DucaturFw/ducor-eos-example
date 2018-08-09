@@ -24,6 +24,18 @@
     "tuple": "cpp",
     "type_traits": "cpp",
     "typeindex": "cpp",
-    "typeinfo": "cpp"
-  }
+    "typeinfo": "cpp",
+    "__hash_table": "cpp",
+    "__split_buffer": "cpp",
+    "__tree": "cpp",
+    "forward_list": "cpp",
+    "initializer_list": "cpp",
+    "list": "cpp",
+    "map": "cpp",
+    "set": "cpp",
+    "unordered_map": "cpp",
+    "unordered_set": "cpp",
+    "valarray": "cpp"
+  },
+  "git.ignoreLimitWarning": true
 }

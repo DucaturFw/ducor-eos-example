@@ -1,3 +1,5 @@
+
+#include <eosiolib/currency.hpp>
 #include <eosiolib/asset.hpp>
 #include "oraclized.hpp"
 
@@ -88,7 +90,7 @@ public:
         state initial;
         initial.price_start = data;
         initial.time_start = now();
-        initial.time_end = initial.time_start + 60 * 60 * 24 * 7; // week after
+        initial.time_end = initial.time_start + 2; //60 * 60 * 24 * 7; // week after
 
         current_state.set(initial, _self);
       }
@@ -101,13 +103,19 @@ public:
     }
   }
 
+  void end()
+  {
+    eosio::print("Time: ", now());
+    eosio::print("\nEnd: ", current_state.get().time_end);
+  }
+
   void makebet(account_name player, eosio::asset eos_tokens, bool raise, std::string memo)
   {
     eosio_assert(current_state.get().time_start > 0, "Start time isn't setuped yet");
     eosio_assert(current_state.get().time_start <= now(), "Start time in future");
     eosio_assert(current_state.get().time_end > now(), "Deadline is achieved already");
 
-    eosio_assert(eos_tokens.symbol == S(4,EOS), "Requires EOS tokens to bet");
+    eosio_assert(eos_tokens.symbol == S(4, EOS), "Requires EOS tokens to bet");
     eosio_assert(eos_tokens.amount > 0, "Bet should be at least 1 token");
     require_auth(player);
 
@@ -120,19 +128,23 @@ public:
       b.raise = raise;
     });
 
-    if(raise){ 
+    if (raise)
+    {
       increase_raise(eos_tokens.amount);
-    }else {
+    }
+    else
+    {
       increase_fall(eos_tokens.amount);
     }
 
     action(
         permission_level{player, N(active)},
         N(eosio.token), N(transfer),
-        std::make_tuple(player, _self, eos_tokens.amount, memo));
+        std::make_tuple(player, _self, eos_tokens, memo))
+        .send();
   }
 
-  void withdrawal(account_name player, std::string memo) 
+  void withdrawal(account_name player, std::string memo)
   {
     state end_state = current_state.get();
     eosio_assert(end_state.time_start > 0, "Start time isn't setuped yet");
@@ -143,7 +155,8 @@ public:
     eosio_assert(player_bet != bets.end(), "Player didn't bet anything");
 
     bool actual_raise = end_state.price_start.value < end_state.price_end.value;
-    if (player_bet->raise == actual_raise) {
+    if (player_bet->raise == actual_raise)
+    {
       uint64_t total = actual_raise ? end_state.total_raise : end_state.total_fall;
       uint64_t stake = total / player_bet->amount;
       uint64_t prize = (end_state.total_raise + end_state.total_fall) / stake;
@@ -152,24 +165,34 @@ public:
         b.amount = 0;
       });
 
+      // eosio::currency::inline_transfer(_self, player, eosio::asset{static_cast<int64_t>(prize), S(4,EOS)}, memo);
+      // SEND_INLINE_ACTION( eosio::token, transfer, { _self, N(active) }, { _self, player, asset(prize, S(4,EOS)), memo });
+      // INLINE_ACTION_SENDER(eosio::token, transfer)(
+      //   N(eosio.token), 
+      //   { _self, N(active) },
+      //   { _self, player, asset(prize, S(4, EOS)), memo });
+      // SEND_INLINE_ACTION
       action(
           permission_level{_self, N(active)},
           N(eosio.token), N(transfer),
-          std::make_tuple(_self, player, prize, memo));
+          std::make_tuple(_self, player, eosio::asset{static_cast<int64_t>(prize), S(4, EOS)}, memo))
+          .send();
     }
   }
 
-  void increase_raise(uint64_t amount) {
+  void increase_raise(uint64_t amount)
+  {
     auto state = current_state.get();
     state.total_raise += amount;
     current_state.set(state, _self);
   }
 
-  void increase_fall(uint64_t amount) {
+  void increase_fall(uint64_t amount)
+  {
     auto state = current_state.get();
     state.total_fall += amount;
     current_state.set(state, _self);
   }
 };
 
-EOSIO_ABI(YOUR_CONTRACT_NAME, (setup)(pushprice)(makebet))
+EOSIO_ABI(YOUR_CONTRACT_NAME, (setup)(pushprice)(makebet)(withdrawal)(end))
