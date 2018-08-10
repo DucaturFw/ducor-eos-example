@@ -1,15 +1,15 @@
 #include "oraclized.hpp"
 
-// using eosio::action;
-// using eosio::asset;
-// using eosio::currency;
-// using eosio::name;
-// using eosio::permission_level;
-// using eosio::print;
-// using eosio::require_auth;
-// using eosio::string_to_symbol;
-// using eosio::symbol_type;
-// using eosio::unpack_action_data;
+using eosio::action;
+using eosio::asset;
+using eosio::currency;
+using eosio::name;
+using eosio::permission_level;
+using eosio::print;
+using eosio::require_auth;
+using eosio::string_to_symbol;
+using eosio::symbol_type;
+using eosio::unpack_action_data;
 
 // @abi table btcusdt i64
 struct price
@@ -209,13 +209,6 @@ public:
         b.amount = 0;
       });
 
-      // eosio::currency::inline_transfer(_self, player, eosio::asset{static_cast<int64_t>(prize), S(4,EOS)}, memo);
-      // SEND_INLINE_ACTION( eosio::token, transfer, { _self, N(active) }, { _self, player, asset(prize, S(4,EOS)), memo });
-      // INLINE_ACTION_SENDER(eosio::token, transfer)(
-      //   N(eosio.token),
-      //   { _self, N(active) },
-      //   { _self, player, asset(prize, S(4, EOS)), memo });
-      // SEND_INLINE_ACTION
       action(
           permission_level{_self, N(active)},
           N(eosio.token), N(transfer),
@@ -244,11 +237,11 @@ extern "C"
   void apply(uint64_t receiver, uint64_t code, uint64_t action)
   {
     uint64_t self = receiver;
-    // if (action == N(onerror))
-    // {
-    //   /* onerror is only valid if it is for the "eosio" code account and authorized by "eosio"'s "active permission */
-    //   eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account");
-    // }
+    if (action == N(onerror))
+    {
+      /* onerror is only valid if it is for the "eosio" code account and authorized by "eosio"'s "active permission */
+      eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account");
+    }
 
     betoraclize thiscontract(self);
 
