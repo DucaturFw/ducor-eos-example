@@ -1,7 +1,18 @@
-
+#include <eosiolib/eosio.hpp>
+#include <eosiolib/action.hpp>
 #include <eosiolib/currency.hpp>
-#include <eosiolib/asset.hpp>
 #include "oraclized.hpp"
+
+using eosio::action;
+using eosio::asset;
+using eosio::currency;
+using eosio::name;
+using eosio::permission_level;
+using eosio::print;
+using eosio::require_auth;
+using eosio::string_to_symbol;
+using eosio::symbol_type;
+using eosio::unpack_action_data;
 
 // @abi table btcusdt i64
 struct price
@@ -45,7 +56,7 @@ typedef singleton<N(master), account_name> oraclize_master;
 typedef singleton<N(state), state> state_def;
 typedef multi_index<N(bet), bet> bets_def;
 
-class YOUR_CONTRACT_NAME : public eosio::contract
+class betoraclize : public eosio::contract
 {
 private:
   btcusdt_data btcusdt;
@@ -56,7 +67,7 @@ private:
 public:
   using contract::contract;
 
-  YOUR_CONTRACT_NAME(account_name s) : contract(s), btcusdt(_self, _self), current_state(_self, _self), bets(_self, _self)
+  betoraclize(account_name s) : contract(s), btcusdt(_self, _self), current_state(_self, _self), bets(_self, _self)
   {
     master = oraclize_master(_self, _self).get_or_create(_self, N(undefined));
   }
@@ -107,6 +118,42 @@ public:
   {
     eosio::print("Time: ", now());
     eosio::print("\nEnd: ", current_state.get().time_end);
+  }
+
+  void transfer(uint64_t self, uint64_t code)
+  {
+    eosio_assert(current_state.get().time_start > 0, "Start time isn't setuped yet");
+    eosio_assert(current_state.get().time_start <= now(), "Start time in future");
+    eosio_assert(current_state.get().time_end > now(), "Deadline is achieved already");
+    eosio_assert(code == N(eosio.token), "I reject your non-eosio.token deposit");
+    auto data = unpack_action_data<currency::transfer>();
+    if (data.from == self || data.to != self)
+    {
+      return;
+    }
+    eosio_assert(data.quantity.symbol == S(4, EOS), "I think you're looking for another contract");
+    eosio_assert(data.quantity.is_valid(), "Are you trying to corrupt me?");
+    eosio_assert(data.quantity.amount > 0, "When pigs fly");
+
+    auto itt = bets.find(data.from);
+    eosio_assert(itt == bets.end(), "Player already made decision");
+
+    bool raise = std::stoi(data.memo.substr(0, 1));
+
+    bets.emplace(self, [&](bet &b) {
+      b.player = data.from;
+      b.amount = data.quantity.amount;
+      b.raise = raise;
+    });
+
+    if (raise)
+    {
+      increase_raise(data.quantity.amount);
+    }
+    else
+    {
+      increase_fall(data.quantity.amount);
+    }
   }
 
   void makebet(account_name player, eosio::asset eos_tokens, bool raise, std::string memo)
@@ -168,7 +215,7 @@ public:
       // eosio::currency::inline_transfer(_self, player, eosio::asset{static_cast<int64_t>(prize), S(4,EOS)}, memo);
       // SEND_INLINE_ACTION( eosio::token, transfer, { _self, N(active) }, { _self, player, asset(prize, S(4,EOS)), memo });
       // INLINE_ACTION_SENDER(eosio::token, transfer)(
-      //   N(eosio.token), 
+      //   N(eosio.token),
       //   { _self, N(active) },
       //   { _self, player, asset(prize, S(4, EOS)), memo });
       // SEND_INLINE_ACTION
@@ -195,4 +242,41 @@ public:
   }
 };
 
-EOSIO_ABI(YOUR_CONTRACT_NAME, (setup)(pushprice)(makebet)(withdrawal)(end))
+extern "C"
+{
+  void apply(uint64_t receiver, uint64_t code, uint64_t action)
+  {
+    uint64_t self = receiver;
+    if (action == N(onerror))
+    {
+      /* onerror is only valid if it is for the "eosio" code account and authorized by "eosio"'s "active permission */
+      eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account");
+    }
+
+    betoraclize thiscontract(self);
+
+    if (code == self || action == N(onerror))
+    {
+      switch (action)
+      {
+      case N(setup):
+        eosio::execute_action(&thiscontract, &betoraclize::setup);
+        break;
+      case N(pushprice):
+        eosio::execute_action(&thiscontract, &betoraclize::pushprice);
+        break;
+      case N(withdrawal):
+        eosio::execute_action(&thiscontract, &betoraclize::withdrawal);
+        break;
+      case N(end):
+        eosio::execute_action(&thiscontract, &betoraclize::end);
+        break;
+      }
+    }
+
+    if (code == N(eosio.token) && action == N(transfer))
+    {
+      thiscontract.transfer(receiver, code);
+    }
+  }
+}

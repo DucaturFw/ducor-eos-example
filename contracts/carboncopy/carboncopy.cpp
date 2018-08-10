@@ -1,16 +1,19 @@
 #include <eosiolib/eosio.hpp>
 #include "carboncopy.hpp"
 
-using namespace eosio;
+void transfer(uint64_t receiver, uint64_t code)
+{
+  eosio::print("CARBOOOON");
+}
 
-class carboncopy : public eosio::contract {
-  public:
-      using contract::contract;
-
-      /// @abi action 
-      void exec() {
-         print("Output from carboncopy");
-      }
-};
-
-EOSIO_ABI( carboncopy, (exec) )
+extern "C"
+{
+  void apply(uint64_t receiver, uint64_t code, uint64_t action)
+  {
+    switch (action)
+    {
+    case N(transfer):
+      return transfer(receiver, code);
+    }
+  }
+}
