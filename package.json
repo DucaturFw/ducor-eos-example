@@ -8,12 +8,12 @@
     "migrate": "eosic migrate"
   },
   "dependencies": {
+    "eosic": "file:../eosic",
     "eosjs": "^16.0.0",
     "typescript": "^3.0.1"
   },
   "devDependencies": {
     "chai": "4.1.2",
-    "eosic": "file:../eosic",
     "mocha": "5.2.0"
   }
 }

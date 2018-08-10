@@ -705,7 +705,7 @@ end-of-stream@^1.0.0, end-of-stream@^1.1.0:
     once "^1.4.0"
 
 "eosic@file:../eosic":
-  version "0.0.3"
+  version "0.0.4"
   dependencies:
     "@oclif/command" "^1"
     "@oclif/config" "^1"
@@ -837,8 +837,8 @@ extend-shallow@^3.0.0, extend-shallow@^3.0.2:
     is-extendable "^1.0.1"
 
 external-editor@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/external-editor/-/external-editor-3.0.0.tgz#dc35c48c6f98a30ca27a20e9687d7f3c77704bb6"
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/external-editor/-/external-editor-3.0.1.tgz#fc9638c4d7cde4f0bb82b12307a1a23912c492e3"
   dependencies:
     chardet "^0.5.0"
     iconv-lite "^0.4.22"

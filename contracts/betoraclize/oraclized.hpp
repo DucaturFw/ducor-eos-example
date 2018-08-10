@@ -1,4 +1,6 @@
 #include <eosiolib/eosio.hpp>
+#include <eosiolib/action.hpp>
+#include <eosiolib/currency.hpp>
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/system.h>
 

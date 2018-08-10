@@ -1,18 +1,15 @@
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/action.hpp>
-#include <eosiolib/currency.hpp>
 #include "oraclized.hpp"
 
-using eosio::action;
-using eosio::asset;
-using eosio::currency;
-using eosio::name;
-using eosio::permission_level;
-using eosio::print;
-using eosio::require_auth;
-using eosio::string_to_symbol;
-using eosio::symbol_type;
-using eosio::unpack_action_data;
+// using eosio::action;
+// using eosio::asset;
+// using eosio::currency;
+// using eosio::name;
+// using eosio::permission_level;
+// using eosio::print;
+// using eosio::require_auth;
+// using eosio::string_to_symbol;
+// using eosio::symbol_type;
+// using eosio::unpack_action_data;
 
 // @abi table btcusdt i64
 struct price
@@ -247,11 +244,11 @@ extern "C"
   void apply(uint64_t receiver, uint64_t code, uint64_t action)
   {
     uint64_t self = receiver;
-    if (action == N(onerror))
-    {
-      /* onerror is only valid if it is for the "eosio" code account and authorized by "eosio"'s "active permission */
-      eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account");
-    }
+    // if (action == N(onerror))
+    // {
+    //   /* onerror is only valid if it is for the "eosio" code account and authorized by "eosio"'s "active permission */
+    //   eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account");
+    // }
 
     betoraclize thiscontract(self);
 
@@ -259,18 +256,7 @@ extern "C"
     {
       switch (action)
       {
-      case N(setup):
-        eosio::execute_action(&thiscontract, &betoraclize::setup);
-        break;
-      case N(pushprice):
-        eosio::execute_action(&thiscontract, &betoraclize::pushprice);
-        break;
-      case N(withdrawal):
-        eosio::execute_action(&thiscontract, &betoraclize::withdrawal);
-        break;
-      case N(end):
-        eosio::execute_action(&thiscontract, &betoraclize::end);
-        break;
+        EOSIO_API(betoraclize, (setup)(pushprice)(withdrawal))
       }
     }
 

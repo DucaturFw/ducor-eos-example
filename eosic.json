@@ -17,13 +17,13 @@
       "version": "0.0.1.1",
       "description": "Generic EOS contract",
       "entry": "betoraclize.cpp",
-      "checksum": "3c9aeef1f4cddafcebfaf4a6297d00a8"
+      "checksum": "2db9badf8611327eb610951147ee44ff"
     },
     "carboncopy": {
       "name": "carboncopy",
       "version": "0.0.1.1",
       "description": "Generic EOS contract",
-      "abi": false,
+      "ignoreAbi": true,
       "entry": "carboncopy.cpp",
       "checksum": "5368f41e748868040537768b4a2b57c9"
     }
