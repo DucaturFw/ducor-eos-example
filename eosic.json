@@ -17,7 +17,7 @@
       "version": "0.0.1.1",
       "description": "Generic EOS contract",
       "entry": "betoraclize.cpp",
-      "checksum": "2db9badf8611327eb610951147ee44ff"
+      "checksum": "6e84bcebcbd68e7cbec735d90fda2444"
     },
     "carboncopy": {
       "name": "carboncopy",

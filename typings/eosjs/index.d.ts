@@ -75,8 +75,12 @@ declare module "eosjs" {
 
   interface EosMethod<TRequest, TResponse> {
     (): void;
-    (config: TRequest): Promise<TResponse>;
-    (cb: (err: Error, result: TResponse) => void): void;
+    (config: TRequest, extra?: IEosjsCallsParams): Promise<TResponse>;
+    (
+      config: TRequest,
+      extra?: IEosjsCallsParams,
+      cb: (err: Error, result: TResponse) => void
+    ): void;
     <T extends TRequest[keyof TRequest]>(...args: T[]): Promise<TResponse>;
   }
 
@@ -163,19 +167,7 @@ declare module "eosjs" {
       memo: string,
       callback: (err: any, res: any) => void
     ): void;
-    transfer(
-      params: { from: string; to: string; quantity: string; memo: string },
-      extra?: IEosjsCallsParams
-    ): Promise<any>;
-    transfer(
-      params: { from: string; to: string; quantity: string; memo: string },
-      callback: (err: any, res: any) => void
-    ): void;
-    transfer(
-      params: { from: string; to: string; quantity: string; memo: string },
-      extra: IEosjsCallsParams,
-      callback: (err: any, res: any) => void
-    ): void;
+    transfer: EosMehod<{ from: string; to: string; quantity: string; memo: string }, any>;
     // contract(...args: any[]): any
     contract<T extends IEosContract>(
       name: string,

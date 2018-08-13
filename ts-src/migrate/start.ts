@@ -69,9 +69,8 @@ export default async function execute() {
     }
   ));
 
+  await eosic.allowContract(eos, "eosio", pub, betAccount);
   await eosic.allowContract(eos, betAccount, pub, betAccount);
-  await eosic.allowContract(eos, winner, pub, betAccount);
-  await eosic.allowContract(eos, loser, pub, betAccount);
   console.log("Setup bet contract");
   await (<any>betContract).setup("eosio", oracle, masterAccount, {
     authorization: ["eosio"]
@@ -85,7 +84,7 @@ export default async function execute() {
       json: true
     })
   );
-
+  console.log("push first price");
   await (<any>betContract).pushprice(
     oracle,
     btcusd_id,
@@ -118,12 +117,16 @@ export default async function execute() {
   );
 
   // account_name player, eosio::asset eos_tokens, bool raise, std::string memo
-  await (<any>betContract).makebet(winner, "50.0000 EOS", 1, "help me", {
-    authorization: [winner]
-  });
-  await (<any>betContract).makebet(loser, "30.0000 EOS", 1, "help me", {
-    authorization: [loser]
-  });
+  // await (<any>betContract).makebet(winner, "50.0000 EOS", 1, "help me", {
+  //   authorization: [winner]
+  // });
+  // await (<any>betContract).makebet(loser, "30.0000 EOS", 1, "help me", {
+  //   authorization: [loser]
+  // });
+
+  console.log("make bets");
+  await eos.transfer(winner, betAccount, "50.0000 EOS", "0");
+  await eos.transfer(loser, betAccount, "30.0000 EOS", "0");
 
   console.log(
     JSON.stringify(
@@ -137,7 +140,9 @@ export default async function execute() {
   );
 
   console.log("wait for end");
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise(resolve => setTimeout(resolve, 5000));
+
+  await (<any>betContract).end({ authorization: [winner] });
 
   await (<any>betContract).pushprice(
     oracle,

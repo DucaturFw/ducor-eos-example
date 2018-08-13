@@ -69,21 +69,15 @@ public:
     master = oraclize_master(_self, _self).get_or_create(_self, N(undefined));
   }
 
+  // @abi action
   void setup(account_name administrator, account_name master, account_name registry)
   {
     require_auth(administrator);
-    oraclize_master(_self, _self).set(master, _self);
+    oraclize_master(_self, _self).set(master, administrator);
     ask_data(administrator, registry, "0xa671e4d5c2daf92bd8b157e766e2c65010e55098cccde25fbb16eab53d8ae4e3");
   }
 
-  void ask_data(account_name administrator, account_name registry, std::string data)
-  {
-    action(permission_level{administrator, N(active)},
-           registry, N(ask),
-           std::make_tuple(administrator, _self, data))
-        .send();
-  }
-
+  // @abi action
   void pushprice(account_name oracle, std::string data_id, price data)
   {
     require_auth(oracle);
@@ -98,7 +92,7 @@ public:
         state initial;
         initial.price_start = data;
         initial.time_start = now();
-        initial.time_end = initial.time_start + 2; //60 * 60 * 24 * 7; // week after
+        initial.time_end = initial.time_start + 3; //60 * 60 * 24 * 7; // week after
 
         current_state.set(initial, _self);
       }
@@ -111,23 +105,25 @@ public:
     }
   }
 
+  // @abi action
   void end()
   {
     eosio::print("Time: ", now());
     eosio::print("\nEnd: ", current_state.get().time_end);
   }
 
+  // @abi action
   void transfer(uint64_t self, uint64_t code)
   {
-    eosio_assert(current_state.get().time_start > 0, "Start time isn't setuped yet");
-    eosio_assert(current_state.get().time_start <= now(), "Start time in future");
-    eosio_assert(current_state.get().time_end > now(), "Deadline is achieved already");
-    eosio_assert(code == N(eosio.token), "I reject your non-eosio.token deposit");
     auto data = unpack_action_data<currency::transfer>();
     if (data.from == self || data.to != self)
     {
       return;
     }
+    eosio_assert(current_state.get().time_start > 0, "Start time isn't setuped yet");
+    eosio_assert(current_state.get().time_start <= now(), "Start time in future");
+    eosio_assert(current_state.get().time_end > now(), "Deadline is achieved already");
+    eosio_assert(code == N(eosio.token), "I reject your non-eosio.token deposit");
     eosio_assert(data.quantity.symbol == S(4, EOS), "I think you're looking for another contract");
     eosio_assert(data.quantity.is_valid(), "Are you trying to corrupt me?");
     eosio_assert(data.quantity.amount > 0, "When pigs fly");
@@ -135,7 +131,7 @@ public:
     auto itt = bets.find(data.from);
     eosio_assert(itt == bets.end(), "Player already made decision");
 
-    bool raise = std::stoi(data.memo.substr(0, 1));
+    bool raise = true; //std::stoi(data.memo.substr(0, 1));
 
     bets.emplace(self, [&](bet &b) {
       b.player = data.from;
@@ -153,46 +149,12 @@ public:
     }
   }
 
-  void makebet(account_name player, eosio::asset eos_tokens, bool raise, std::string memo)
-  {
-    eosio_assert(current_state.get().time_start > 0, "Start time isn't setuped yet");
-    eosio_assert(current_state.get().time_start <= now(), "Start time in future");
-    eosio_assert(current_state.get().time_end > now(), "Deadline is achieved already");
-
-    eosio_assert(eos_tokens.symbol == S(4, EOS), "Requires EOS tokens to bet");
-    eosio_assert(eos_tokens.amount > 0, "Bet should be at least 1 token");
-    require_auth(player);
-
-    auto itt = bets.find(player);
-    eosio_assert(itt == bets.end(), "Player already made decision");
-
-    bets.emplace(player, [&](bet &b) {
-      b.player = player;
-      b.amount = eos_tokens.amount;
-      b.raise = raise;
-    });
-
-    if (raise)
-    {
-      increase_raise(eos_tokens.amount);
-    }
-    else
-    {
-      increase_fall(eos_tokens.amount);
-    }
-
-    action(
-        permission_level{player, N(active)},
-        N(eosio.token), N(transfer),
-        std::make_tuple(player, _self, eos_tokens, memo))
-        .send();
-  }
-
+  // @abi action
   void withdrawal(account_name player, std::string memo)
   {
     state end_state = current_state.get();
     eosio_assert(end_state.time_start > 0, "Start time isn't setuped yet");
-    eosio_assert(end_state.time_end <= now(), "Deadline is achieved already");
+    eosio_assert(end_state.time_end <= now(), "Deadline isn't achieved already");
     eosio_assert(end_state.price_end.value > 0, "Price isn't pushed yet");
 
     auto player_bet = bets.find(player);
@@ -230,6 +192,14 @@ public:
     state.total_fall += amount;
     current_state.set(state, _self);
   }
+
+  void ask_data(account_name administrator, account_name registry, std::string data)
+  {
+    action(permission_level{administrator, N(active)},
+           registry, N(ask),
+           std::make_tuple(administrator, _self, data))
+        .send();
+  }
 };
 
 extern "C"
@@ -249,7 +219,7 @@ extern "C"
     {
       switch (action)
       {
-        EOSIO_API(betoraclize, (setup)(pushprice)(withdrawal))
+        EOSIO_API(betoraclize, (setup)(end)(pushprice)(withdrawal))
       }
     }
 
