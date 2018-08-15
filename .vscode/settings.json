@@ -35,7 +35,13 @@
     "set": "cpp",
     "unordered_map": "cpp",
     "unordered_set": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "variant": "cpp",
+    "iosfwd": "cpp",
+    "__locale": "cpp",
+    "__string": "cpp",
+    "istream": "cpp",
+    "utility": "cpp"
   },
   "git.ignoreLimitWarning": true
 }

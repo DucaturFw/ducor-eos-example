@@ -32,6 +32,7 @@ struct request
 {
   std::string task;
   account_name contract;
+  account_name administrator;
   uint32_t timestamp;
   bool active;
 
@@ -52,7 +53,7 @@ struct request
     return p64[0] ^ p64[1] ^ p64[2] ^ p64[3];
   }
 
-  EOSLIB_SERIALIZE(request, (task)(contract)(timestamp)(active))
+  EOSLIB_SERIALIZE(request, (task)(contract)(administrator)(timestamp)(active))
 };
 
 typedef multi_index<N(request), request> request_table;
@@ -76,6 +77,7 @@ public:
     requests.emplace(administrator, [&](request &r) {
       r.task = task;
       r.contract = contract;
+      r.administrator = administrator;
       r.timestamp = now();
       r.active = true;
     });
@@ -89,6 +91,7 @@ public:
     auto itt = requests.find(id);
     eosio_assert(itt != requests.end(), "Unknown request");
     eosio_assert(itt->active, "Non-active request");
+    eosio_assert(itt->administrator == administrator, "admininstrator error");
 
     requests.modify(itt, administrator, [&](request &r) {
       r.active = false;
@@ -103,6 +106,7 @@ public:
     auto itt = requests.find(id);
     eosio_assert(itt != requests.end(), "Unknown request");
     eosio_assert(!(itt->active), "Active request");
+    eosio_assert(itt->administrator == administrator, "admininstrator error");
 
     requests.modify(itt, administrator, [&](request &r) {
       r.active = true;

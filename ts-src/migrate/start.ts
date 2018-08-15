@@ -3,7 +3,7 @@ import Eos from "eosjs";
 
 export default async function execute() {
   const btcusd_id =
-    "0xa671e4d5c2daf92bd8b157e766e2c65010e55098cccde25fbb16eab53d8ae4e3";
+    "0x5d4e98a94bf3e6c7d539f4988cc5f7557fe12c8e53ec6a193b7c0ad92dafe188";
   const [pub, wif] = [
     "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
     "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
@@ -24,6 +24,8 @@ export default async function execute() {
     betContract,
     masterAccount,
     masterContract,
+    vulnerableAccount,
+    vulnerableContract,
     tokenAccount,
     tokenContract;
 
@@ -69,11 +71,21 @@ export default async function execute() {
     }
   ));
 
+
+  ({ account: vulnerableAccount, contract: vulnerableContract } = await eosic.createContract(
+    pub,
+    eos,
+    "vulnerable",
+    {
+      contractName: "vulnerable"
+    }
+  ));
+
   await eosic.allowContract(eos, "eosio", pub, betAccount);
   await eosic.allowContract(eos, betAccount, pub, betAccount);
   console.log("Setup bet contract");
-  await (<any>betContract).setup("eosio", oracle, masterAccount, {
-    authorization: ["eosio"]
+  await (<any>betContract).setup(oracle, masterAccount, {
+    authorization: ["eosio", betAccount]
   });
 
   console.log(
@@ -125,8 +137,8 @@ export default async function execute() {
   // });
 
   console.log("make bets");
-  await eos.transfer(winner, betAccount, "50.0000 EOS", "0");
-  await eos.transfer(loser, betAccount, "30.0000 EOS", "0");
+  await eos.transfer(winner, betAccount, "50.0000 EOS", "1");
+  await eos.transfer(loser, betAccount, "30.0000 EOS", "");
 
   console.log(
     JSON.stringify(
@@ -141,8 +153,6 @@ export default async function execute() {
 
   console.log("wait for end");
   await new Promise(resolve => setTimeout(resolve, 5000));
-
-  await (<any>betContract).end({ authorization: [winner] });
 
   await (<any>betContract).pushprice(
     oracle,
@@ -163,9 +173,13 @@ export default async function execute() {
       symbol: "EOS"
     })
   );
-
-  await (<any>betContract).withdrawal(winner, "hey ho", {
-    authorization: [winner, betAccount]
+  
+  console.log('withdrawal process');
+  await (<any>betContract).withdrawal(loser, {
+    authorization: [winner]
+  });
+  await (<any>betContract).withdrawal(winner, {
+    authorization: [winner]
   });
 
   console.log(
@@ -173,6 +187,18 @@ export default async function execute() {
       code: "eosio.token",
       account: winner,
       symbol: "EOS"
+    })
+  );
+
+
+  console.log(
+    await eos.getTableRows({
+      code: betAccount,
+      scope: betAccount,
+      table: "bet",
+      json: true,
+      limit: 9999,
+      lower_bound: 0
     })
   );
 }
